@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:latlong2/latlong.dart' as latLng;
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:sales_app/app/modules/home/widgets/exportFile.dart';
@@ -9,6 +12,7 @@ class HomeController extends GetxController {
   //TODO: Implement HomeController
 
   final count = 0.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -33,7 +37,6 @@ class HomeController extends GetxController {
       recordLocation();
     } else {
       cancelTimer();
-      saveLocationsToDevice();
     }
   }
 
@@ -57,6 +60,15 @@ class HomeController extends GetxController {
 
   RxList locations = [].obs;
 
+  late var testLocations = [
+    [12.972890, 77.597628],
+    [13.001661, 77.598315],
+    [13.005340, 77.584917],
+    [13.011027, 77.563617],
+    [13.009689, 77.542661],
+    [12.995974, 77.508306]
+  ];
+
   recordLocation() async {
     await Geolocator.requestPermission();
 
@@ -65,12 +77,21 @@ class HomeController extends GetxController {
 
     locations.add([position.latitude, position.longitude]);
 
-    timer = Timer.periodic(Duration(seconds: 10), (t) async {
+    int j = 0;
+
+    timer = Timer.periodic(selectedLocationFetchInterval.duration, (t) async {
       position = await Geolocator.getCurrentPosition(
+          forceAndroidLocationManager: true,
           desiredAccuracy: LocationAccuracy.best);
+
+      // locations.add(testLocations[j]);
+      // j++;
+
       locations.add([position.latitude, position.longitude]);
+
       print(locations);
       locations.refresh();
+      update();
     });
   }
 
@@ -78,11 +99,79 @@ class HomeController extends GetxController {
     timer?.cancel();
   }
 
-  saveLocationsToDevice() async {
-    var text = flatten(locations);
-    print(text.toString());
-    await ExportFile().write(text.toString());
+  //-------------------------- FETCH LOCATION INTERVAL------------------
+
+  late LocationFetchInterval selectedLocationFetchInterval =
+      locationFetchIntervals[0];
+
+  List<LocationFetchInterval> locationFetchIntervals = [
+    LocationFetchInterval('10s', Duration(seconds: 10)),
+    LocationFetchInterval('2m', Duration(minutes: 2)),
+    LocationFetchInterval('10m', Duration(minutes: 10)),
+  ];
+
+  changeLocationFetchInterval(LocationFetchInterval option) {
+    selectedLocationFetchInterval = option;
+    update();
   }
 
-  List<T> flatten<T>(List list) => [for (var sublist in list) ...sublist];
+//-----------------------------------MAP WIDGET:
+
+  // var mapCenterInital = latLng.LatLng(12.9716, 77.5946);
+
+  final mapController = MapController();
+
+  getMapMarkers() {
+    List<Marker> markers = [];
+
+    if (locations.isEmpty) {
+      return <Marker>[];
+    } else {
+      for (var location in locations) {
+        markers.add(
+          Marker(
+              point: latLng.LatLng(location[0], location[1]),
+              width: 100,
+              height: 100,
+              builder: (context) => Icon(
+                    Icons.location_on,
+                    color: Colors.red,
+                  )),
+        );
+      }
+
+      var latestPosition = latLng.LatLng(locations.last[0], locations.last[1]);
+
+      mapController.move(latestPosition, 15);
+
+      return markers;
+    }
+  }
+
+  getPolyLines() {
+    List<latLng.LatLng> polyLinePoints = [];
+
+    if (locations.isEmpty) {
+      return [Polyline(points: [])];
+    } else {
+      for (var location in locations) {
+        polyLinePoints.add(latLng.LatLng(location[0], location[1]));
+      }
+
+      return [
+        Polyline(
+          strokeWidth: 2,
+          points: polyLinePoints,
+          color: Colors.blue,
+        )
+      ];
+    }
+  }
+}
+
+class LocationFetchInterval {
+  String label;
+  Duration duration;
+
+  LocationFetchInterval(this.label, this.duration);
 }

@@ -1,10 +1,12 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'package:intl/intl.dart';
 import 'package:app_settings/app_settings.dart';
 import 'package:get/get.dart';
 import 'package:sales_app/app/modules/home/widgets/camera.dart';
+import 'package:sales_app/app/modules/home/widgets/interval_dropDown.dart';
+import 'package:sales_app/app/modules/home/widgets/map.dart';
 
 import '../controllers/home_controller.dart';
 
@@ -21,19 +23,30 @@ class HomeView extends GetView<HomeController> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
-            ElevatedButton(
-              onPressed: () => print(AppSettings.openLocationSettings()),
-              child: Text('Open Location Settings'),
-            ),
+            // ElevatedButton(
+            //   onPressed: () => print(AppSettings.openLocationSettings()),
+            //   child: Text('Open Location Settings'),
+            // ),
             Obx(
               () => Column(children: [
-                Text(
-                    !controller.isShiftOn.value ? 'Start Shift' : 'Stop Shift'),
-                CupertinoSwitch(
-                    value: controller.isShiftOn.value,
-                    onChanged: (value) {
-                      controller.toggleShiftStatus(value);
-                    }),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Column(
+                      children: [
+                        Text(!controller.isShiftOn.value
+                            ? 'Start Shift'
+                            : 'Stop Shift'),
+                        CupertinoSwitch(
+                            value: controller.isShiftOn.value,
+                            onChanged: (value) {
+                              controller.toggleShiftStatus(value);
+                            }),
+                      ],
+                    ),
+                    DropDownButtonLocationInterval()
+                  ],
+                ),
                 SizedBox(
                   height: 20,
                 ),
@@ -42,16 +55,19 @@ class HomeView extends GetView<HomeController> {
                   height: 20,
                 ),
                 SizedBox(
-                  height: 400,
-                  width: 200,
+                  height: 200,
+                  //width: 200,
                   child: ListView.builder(
                       itemCount: controller.locations.length,
                       itemBuilder: (context, index) => SelectableText(
-                          '${controller.locations[index][0]}, ${controller.locations[index][1]}')),
+                          '${controller.locations[index][0]}, ${controller.locations[index][1]}, @ ${DateFormat('Hm').format(DateTime.now().toLocal())}')),
                 )
               ]),
             ),
-
+            SizedBox(
+              height: 500,
+              child: CustomMap(),
+            )
             // ElevatedButton(
             //   onPressed: () async {
             //     var location = await LocationHandler.getLocation();
@@ -63,39 +79,37 @@ class HomeView extends GetView<HomeController> {
             //   },
             //   child: Text('Display Location'),
             // ),
-            ElevatedButton(
-              onPressed: () async => {
-                await availableCameras().then(
-                  (value) => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => Camera(cameras: value))),
-                )
-              },
-              child: Text('Take Photo'),
-            ),
+            // ElevatedButton(
+            //   onPressed: () async => {
+            //     await availableCameras().then(
+            //       (value) => Navigator.push(
+            //           context,
+            //           MaterialPageRoute(
+            //               builder: (_) => Camera(cameras: value))),
+            //     )
+            //   },
+            //   child: Text('Take Photo'),
+            // ),
           ],
         ),
       ),
 
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.task),
-            label: 'Tasks',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.upload),
-            label: 'Upload Photo',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      // bottomNavigationBar: BottomNavigationBar(
+      //   items: const <BottomNavigationBarItem>[
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.task),
+      //       label: 'Tasks',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.upload),
+      //       label: 'Upload Photo',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.settings),
+      //       label: 'Settings',
+      //     ),
+      //   ],
+      // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
-
-  saveCurrentLocation() {}
 }

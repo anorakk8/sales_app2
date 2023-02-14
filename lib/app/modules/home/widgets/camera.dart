@@ -97,7 +97,7 @@ class _CameraState extends State<Camera> {
                     Expanded(
                         child: IconButton(
                       onPressed: takePicture,
-                      iconSize: 50,
+                      iconSize: 65,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       icon: const Icon(Icons.camera_outlined,
