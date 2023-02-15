@@ -60,7 +60,7 @@ class HomeView extends GetView<HomeController> {
                   child: ListView.builder(
                       itemCount: controller.locations.length,
                       itemBuilder: (context, index) => SelectableText(
-                          '${controller.locations[index][0]}, ${controller.locations[index][1]}, @ ${DateFormat('Hm').format(DateTime.now().toLocal())}')),
+                          '${controller.locations[index][0]}, ${controller.locations[index][1]}, @ ${DateFormat('Hm').format(controller.locations[index][2])}')),
                 )
               ]),
             ),

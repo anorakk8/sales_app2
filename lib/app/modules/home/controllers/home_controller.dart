@@ -73,23 +73,27 @@ class HomeController extends GetxController {
     await Geolocator.requestPermission();
 
     position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best);
+        forceAndroidLocationManager: true,
+        desiredAccuracy: LocationAccuracy.high);
 
-    locations.add([position.latitude, position.longitude]);
+    locations
+        .add([position.latitude, position.longitude, DateTime.now().toLocal()]);
 
     int j = 0;
 
     timer = Timer.periodic(selectedLocationFetchInterval.duration, (t) async {
       position = await Geolocator.getCurrentPosition(
           forceAndroidLocationManager: true,
-          desiredAccuracy: LocationAccuracy.best);
+          desiredAccuracy: LocationAccuracy.high);
 
       // locations.add(testLocations[j]);
       // j++;
 
-      locations.add([position.latitude, position.longitude]);
+      locations.add(
+          [position.latitude, position.longitude, DateTime.now().toLocal()]);
 
-      print(locations);
+      debugPrint(locations.length.toString());
+      debugPrint(locations.toString());
       locations.refresh();
       update();
     });
